@@ -26,6 +26,8 @@ interface DirectionProps {
   handleChangeFrom: (v?: string, latLng?: number[]) => void;
   handleChangeTo: (v?: string, latLng?: number[]) => void;
   handleRemove: () => void;
+  setFrom: (newFrom: LocationInfo) => void;
+  setTo: (newTo: LocationInfo) => void;
 }
 
 interface ContextMenuProps {
@@ -78,6 +80,8 @@ export const defaultMapContext: MapContextProps = {
     handleChangeFrom: (v?: string, latLng?: number[]) => {},
     handleChangeTo: (v?: string, latLng?: number[]) => {},
     handleRemove: () => {},
+    setFrom: (newFrom: LocationInfo) => {},
+    setTo: (newTo: LocationInfo) => {},
   },
   contextMenu: {
     isContextMenuOpen: false,
