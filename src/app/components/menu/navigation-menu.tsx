@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Box, Divider } from '@mui/material';
 import TripOriginIcon from '@mui/icons-material/TripOrigin';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -22,6 +22,8 @@ const NavigationMenu = () => {
       location: { from, to },
       handleChangeFrom,
       handleChangeTo,
+      setFrom,
+      setTo
     },
   } = useMapContext();
 
@@ -40,6 +42,11 @@ const NavigationMenu = () => {
       }),
     [list]
   );
+
+  const swapDirections = useCallback(() => {
+    setFrom(to);
+    setTo(from);
+  }, [from, to, setFrom, setTo]);
 
   const AnimatedMenu = animated(Box);
 
@@ -80,7 +87,7 @@ const NavigationMenu = () => {
         </Box>
       </Box>
       <Box>
-        <SwapVertIcon sx={styles.swapIcon} />
+        <SwapVertIcon sx={styles.swapIcon} onClick={swapDirections} />
       </Box>
     </AnimatedMenu>
   );
