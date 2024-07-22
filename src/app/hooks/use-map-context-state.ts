@@ -6,6 +6,7 @@ import { debounce } from 'lodash';
 import useRoutingControl from '@hooks/use-routing-control';
 import useMapService from '@hooks/services/map-service';
 import { MapContextProps, defaultMapState } from '@app-types/map-context';
+import { LocationInfo } from '../types/directions';
 import mapReducer from './map-reducer';
 import { actions } from './actions';
 
@@ -15,8 +16,7 @@ const ITEMS_TO_REMOVE = 1;
 const useMapContextState: () => MapContextProps = () => {
   const map = useMap();
 
-  const { routingControl, waypoints, handleSpliceWaypoints } =
-    useRoutingControl();
+  const { routingControl, waypoints, handleSpliceWaypoints } = useRoutingControl();
 
   const { isLoading: isLoadingSearch, list, search } = useMapService();
 
@@ -24,10 +24,7 @@ const useMapContextState: () => MapContextProps = () => {
 
   const lastWaypointIndex = waypoints.length - 1;
 
-  const debouncedSearch = useMemo(
-    () => debounce((v: string) => search(v), 1000),
-    []
-  );
+  const debouncedSearch = useMemo(() => debounce((v: string) => search(v), 1000), []);
 
   const handleLoading = (v: boolean) => {
     dispatch({ type: actions.handleLoading, value: v });
@@ -46,10 +43,9 @@ const useMapContextState: () => MapContextProps = () => {
   };
 
   const handleUpdatePlaceName = (action: string) => {
-    const index =
-      action === actions.handleChangeFrom ? FIRST_INDEX : lastWaypointIndex;
+    const index = action === actions.handleChangeFrom ? FIRST_INDEX : lastWaypointIndex;
 
-    const waypoint: L.LatLng | undefined = waypoints[index].latLng;
+    const waypoint: L.LatLng | undefined = waypoints[index]?.latLng;
 
     if (waypoint) {
       search(`${waypoint.lng},${waypoint.lat}`).then((v) => {
@@ -66,8 +62,7 @@ const useMapContextState: () => MapContextProps = () => {
     address?: string,
     latLng?: number[]
   ) => {
-    const index =
-      action === actions.handleChangeFrom ? FIRST_INDEX : lastWaypointIndex;
+    const index = action === actions.handleChangeFrom ? FIRST_INDEX : lastWaypointIndex;
 
     if (address !== undefined) {
       dispatch({
@@ -102,6 +97,30 @@ const useMapContextState: () => MapContextProps = () => {
     handleChangeDirection(actions.handleChangeTo, address, latLng);
   };
 
+  const setFrom = (newFrom: LocationInfo) => {
+    dispatch({
+      type: actions.handleChangeFrom,
+      value: newFrom.address,
+    });
+    handleSpliceWaypoints(
+      FIRST_INDEX,
+      ITEMS_TO_REMOVE,
+      new L.LatLng(newFrom.latLng?.lat ?? 0, newFrom.latLng?.lng ?? 0)
+    );
+  };
+
+  const setTo = (newTo: LocationInfo) => {
+    dispatch({
+      type: actions.handleChangeTo,
+      value: newTo.address,
+    });
+    handleSpliceWaypoints(
+      lastWaypointIndex,
+      ITEMS_TO_REMOVE,
+      new L.LatLng(newTo.latLng?.lat ?? 0, newTo.latLng?.lng ?? 0)
+    );
+  };
+
   const handleRemove = () => {
     const index = parseInt(
       (state.eventHandler?.originalEvent.target as HTMLInputElement).alt
@@ -116,11 +135,11 @@ const useMapContextState: () => MapContextProps = () => {
 
   useEffect(() => {
     handleUpdatePlaceName(actions.handleChangeFrom);
-  }, [waypoints[FIRST_INDEX].latLng]);
+  }, [waypoints[FIRST_INDEX]?.latLng]);
 
   useEffect(() => {
     handleUpdatePlaceName(actions.handleChangeTo);
-  }, [waypoints[lastWaypointIndex].latLng]);
+  }, [waypoints[lastWaypointIndex]?.latLng]);
 
   return {
     defaults: {
@@ -141,6 +160,8 @@ const useMapContextState: () => MapContextProps = () => {
       handleChangeFrom,
       handleChangeTo,
       handleRemove,
+      setFrom,
+      setTo,
     },
     contextMenu: {
       isContextMenuOpen: state.isContextMenuOpen,
